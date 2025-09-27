@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Table View</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body class="bg-gray-100 p-8">
+
+    <header class="bg-white shadow-md p-4 mb-8 rounded-xl flex justify-between items-center">
+        <h1 class="text-xl font-semibold">Employee Table View</h1>
+        <nav>
+            <ul class="flex space-x-4 items-center">
+                <li>
+                <a href="{% url 'dashboard' %}"
+                    class="flex items-center space-x-2 text-black px-4 py-2 rounded-md hover:bg-blue-600 hover:text-white transition">
+                    <i class='bx bxs-id-card'></i>
+                    <span>Show in Card</span>
+                </a>
+                </li>
+
+                {% if user_role in 'SUPER_ADMIN HR_MANAGER HR_EXECUTIVE' %}
+                <li>
+                    <a href="{% url 'add_employee' %}"
+                        class="flex items-center space-x-2 text-black px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                        <i class='bx bx-user-plus text-xl'></i>
+                        <span>Add Employee</span>
+                    </a>
+                </li>
+                {% endif %}
+                <li>
+                    <a href="{% url 'logout' %}" class="bg-red-500 text-white px-4 py-2 rounded-md">
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="bg-white rounded-xl shadow-md p-6 overflow-x-auto">
+        <table class="min-w-full table-auto text-sm text-left text-gray-700">
+            <thead class="bg-gray-100 font-semibold text-gray-600">
+                <tr>
+                    <th class="px-4 py-2">Sl No</th>
+                    <th class="px-4 py-2">Profile</th>
+                    <th class="px-4 py-2">Name</th>
+                    <th class="px-4 py-2">Job</th>
+                    <th class="px-4 py-2">Mobile</th>
+                    <th class="px-4 py-2">Phone</th>
+                    <th class="px-4 py-2">Country</th>
+                    <th class="px-4 py-2">City</th>
+                    {% if user_role == 'SUPER_ADMIN' or user_role == 'HR_MANAGER' %}
+                    <th class="px-4 py-2">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in employees %}
+                <tr class="border-t hover:bg-gray-50">
+                    <td class="px-4 py-2 font-medium">{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
+                    <td class="px-4 py-2">
+                        {% if employee.profile_photo %}
+                        <img class="w-10 h-10 rounded-full object-cover" src="{{ employee.profile_photo.url }}" alt="{{ employee.name }}'s profile">
+                    {% else %}
+                        <img class="w-10 h-10 rounded-full object-cover" src="{% static 'images/prf_pic.webp' %}" alt="default profile">
+                    {% endif %}                    </td>
+                    <td class="px-4 py-2">{{ employee.name }}</td>
+                    <td class="px-4 py-2">{{ employee.job }}</td>
+                    <td class="px-4 py-2">{{ employee.mobile }}</td>
+                    <td class="px-4 py-2">{{ employee.phone }}</td>
+                    <td class="px-4 py-2">{{ employee.country }}</td>
+                    <td class="px-4 py-2">{{ employee.city }}</td>
+                    {% if user_role == 'SUPER_ADMIN' or user_role == 'HR_MANAGER' %}
+                    <td class="px-4 py-2 flex items-center space-x-2">
+                        <form method="POST" action="{% url 'delete_employee' employee.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-600 text-lg hover:text-red-800">
+                                <i class='bx bx-trash'></i>
+                            </button>
+                        </form>
+                        <a href="{% url 'edit_employee' employee.pk %}"
+                            class="text-blue-600 text-lg hover:text-blue-800">
+                            <i class='bx bx-edit-alt'></i>
+                        </a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-gray-500 py-4">No employees found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>    
+        </table>
+
+        <div class="mt-4 flex justify-center">
+            <nav class="inline-flex items-center space-x-1">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Previous</a>
+                {% endif %}
+        
+                <span class="px-3 py-1 bg-blue-500 text-white rounded">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+        
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Last</a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
